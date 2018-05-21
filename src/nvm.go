@@ -318,8 +318,9 @@ func uninstall(version string) {
     fmt.Printf("Uninstalling node v"+version+"...")
     v, _ := node.GetCurrentVersion()
     if v == version {
-      cmd := exec.Command(filepath.Join(env.root, "elevate.cmd"), "cmd", "/C", "rmdir", env.symlink)
-      cmd.Run()
+      runElevated(fmt.Sprintf(`"%s" cmd /C rmdir "%s"`,
+        filepath.Join(env.root, "elevate.cmd"),
+        filepath.Clean(env.symlink)))
     }
     e := os.RemoveAll(filepath.Join(env.root, "v"+version))
     if e != nil {
@@ -513,8 +514,12 @@ func enable() {
 }
 
 func disable() {
-  cmd := exec.Command(filepath.Join(env.root, "elevate.cmd"), "cmd", "/C", "rmdir", env.symlink)
-  cmd.Run()
+  if !runElevated(fmt.Sprintf(`"%s" cmd /C rmdir "%s"`,
+    filepath.Join(env.root, "elevate.cmd"),
+    filepath.Clean(env.symlink))) {
+      return
+  }
+
   fmt.Println("nvm disabled")
 }
 
